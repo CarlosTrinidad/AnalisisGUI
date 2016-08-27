@@ -22,7 +22,7 @@ function varargout = Imagenes(varargin)
 
 % Edit the above text to modify the response to help Imagenes
 
-% Last Modified by GUIDE v2.5 22-Aug-2016 22:19:43
+% Last Modified by GUIDE v2.5 27-Aug-2016 00:03:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -79,21 +79,129 @@ function importBtn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [nombreArchivo, ubicacionArchivo] = uigetfile({'*.jpg;*.tif;*.png;*.gif;*.dcm'}, 'Seleccionar imagen');
+imagenArchivo = '';
+imagenGray = '';
 if( nombreArchivo ~= 0)
     [~,~,ext] = fileparts(nombreArchivo);
     if(strcmp(ext,'.dcm'))
         imagenArchivo = dicomread(strcat(ubicacionArchivo, nombreArchivo));
         imshow(imagenArchivo(:,:,1,1));
+        title(nombreArchivo);
+        axis image
     else
         imagenArchivo = imread(strcat(ubicacionArchivo, nombreArchivo));
-        axes(handles.imgPreview);
-        imshow(imagenArchivo);
-        title(nombreArchivo);
+        if size(imagenArchivo,3) == 3 
+            imagenGray = rgb2gray(imagenArchivo);
+        else
+            imagenGray = imagenArchivo;
+        end       
+
     end
 end
-
-
+    handles.imagenGray=imagenGray;
+    guidata(hObject,handles);
+  axes(handles.histogram);
+  imhist(imagenGray);
+  axes(handles.imgPreGray);
+  imshow(imagenGray);
+  title('En escala de grises');
+  axis image        
+        
+  axes(handles.imgPreview);
+  imshow(imagenArchivo);
+  title(nombreArchivo);
+  axis image
 
 % Ajustar brillo
 %ajustar contrste
 %ecualizar
+
+
+% --- Executes on slider movement.
+function sdBrillo_Callback(hObject, eventdata, handles)
+% hObject    handle to sdBrillo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+imagenGray=handles.imagenGray;
+
+valBrillo = get(handles.sdBrillo, 'Value');
+ imagenGray = imagenGray + valBrillo;
+  axes(handles.histogram);
+  imhist(imagenGray);
+  axes(handles.imgPreGray);
+  imshow(imagenGray);
+  title('En escala de grises');
+  axis image        
+        
+
+
+
+% --- Executes during object creation, after setting all properties.
+function sdBrillo_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sdBrillo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on slider movement.
+function sdContrast_Callback(hObject, eventdata, handles)
+% hObject    handle to sdContrast (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+imagenGray=handles.imagenGray;
+
+valContrast = get(handles.sdContrast, 'Value');
+ imagenGray = imagenGray .* valContrast;
+  axes(handles.histogram);
+  imhist(imagenGray);
+  axes(handles.imgPreGray);
+  imshow(imagenGray);
+  title('En escala de grises');
+  axis image
+
+% --- Executes during object creation, after setting all properties.
+function sdContrast_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sdContrast (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on button press in equBtn.
+function equBtn_Callback(hObject, eventdata, handles)
+% hObject    handle to equBtn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+imagenGray=handles.imagenGray;
+
+ imagenGray = histeq(imagenGray);
+  axes(handles.histogram);
+  imhist(imagenGray);
+  axes(handles.imgPreGray);
+  imshow(imagenGray);
+  title('En escala de grises');
+  axis image
+
+
+% --- Executes during object creation, after setting all properties.
+function histogram_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to histogram (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: place code in OpeningFcn to populate histogram
