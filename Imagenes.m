@@ -22,7 +22,7 @@ function varargout = Imagenes(varargin)
 
 % Edit the above text to modify the response to help Imagenes
 
-% Last Modified by GUIDE v2.5 05-Nov-2016 18:06:54
+% Last Modified by GUIDE v2.5 14-Nov-2016 23:25:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -78,6 +78,9 @@ function importBtn_Callback(hObject, eventdata, handles)
 % hObject    handle to importBtn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+% Set values
+set(0, 'DefaulttextInterpreter', 'none');
+
 [nombreArchivo, ubicacionArchivo] = uigetfile({'*.jpg;*.tif;*.png;*.gif;*.dcm'}, 'Seleccionar imagen');
 imagenArchivo = '';
 imagenGray = '';
@@ -106,6 +109,7 @@ end
 
 
   handles.nameFile = nombreArchivo;
+  handles.imageOriginal = imagenArchivo;
   handles.imagenGray=imagenGray;
   handles.imagenGray_mod = handles.imagenGray;
   guidata(hObject,handles);
@@ -136,11 +140,15 @@ function sdBrillo_Callback(hObject, eventdata, handles)
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 imagenGray=handles.imagenGray;
 
+if isfield(handles,'imagenGray_mod')
+    imagenGray=handles.imagenGray_mod;
+end
+
 valBrillo = get(handles.sdBrillo, 'Value');
  imagenGray = imagenGray + valBrillo;
  
- handles.imagenGray_mod=imagenGray;
-    guidata(hObject,handles);
+ handles.imagenGray_temp=imagenGray;
+ guidata(hObject,handles);
  
   axes(handles.histogram);
   imhist(imagenGray);
@@ -174,10 +182,14 @@ function sdContrast_Callback(hObject, eventdata, handles)
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 imagenGray=handles.imagenGray;
 
+if isfield(handles,'imagenGray_mod')
+    imagenGray=handles.imagenGray_mod;
+end
+
 valContrast = get(handles.sdContrast, 'Value');
  imagenGray = imagenGray .* valContrast;
  
- handles.imagenGray_mod=imagenGray;
+ handles.imagenGray_temp=imagenGray;
  guidata(hObject,handles);
  
   axes(handles.histogram);
@@ -198,6 +210,33 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
+
+% --- Executes on button press in BriCon_confirm.
+function BriCon_confirm_Callback(hObject, eventdata, handles)
+% hObject    handle to BriCon_confirm (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.sdBrillo, 'value', 0);
+set(handles.sdContrast, 'value', 0);
+ handles.imagenGray_mod = handles.imagenGray_temp;
+ guidata(hObject,handles);
+
+% --- Executes on button press in BriCon_cancel.
+function BriCon_cancel_Callback(hObject, eventdata, handles)
+% hObject    handle to BriCon_cancel (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.sdBrillo, 'value', 0);
+set(handles.sdContrast, 'value', 0);
+
+ imagenGray = handles.imagenGray_mod;
+  axes(handles.histogram);
+  imhist(imagenGray);
+  axes(handles.imgPreGray);
+  imshow(imagenGray);
+  title('En escala de grises');
+  axis image
 
 % --- Executes on button press in equBtn.
 function equBtn_Callback(hObject, eventdata, handles)
@@ -377,7 +416,7 @@ if isfield(handles,'imagenGray_mod')
     I=handles.imagenGray_mod;
 end
 BW = imbinarize(I);
-
+ 
 if isfield(handles,'imagenBIN')
     BW = handles.imagenBIN;
 end
@@ -480,10 +519,311 @@ switch drpdown1_value
         rectangle('Position',stats_de.BoundingBox ,...
 	'EdgeColor','b', 'LineWidth', 3)
         hold off
-        
-    case 5
-        
-        
+                
     otherwise
         
 end
+
+
+% --------------------------------------------------------------------
+function img_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to img_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function showImg_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to showImg_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function train_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to train_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function more_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to more_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function carac_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to carac_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+I=handles.imagenGray;
+
+if isfield(handles,'imagenGray_mod')
+    I=handles.imagenGray_mod;
+end
+BW = imbinarize(I);
+if isfield(handles,'imagenBIN')
+    BW = handles.imagenBIN;
+end
+BW = filtroArea(BW);
+
+stats = regionprops(bwlabel(BW),'Area','Eccentricity','Extent','Perimeter','centroid','Orientation','MajorAxisLength','MinorAxisLength');
+d = {'Área',num2str(stats.Area);'Eccentricity',num2str(stats.Eccentricity);'Perimeter',num2str(stats.Perimeter);'Centroid',num2str(stats.Centroid);'Orientation',num2str(stats.Orientation);'MajorAxisLength',num2str(stats.MajorAxisLength);'MinorAxisLength',num2str(stats.MinorAxisLength)};
+f = figure;
+t = uitable(f,'ColumnWidth',{100 200},'Data',d);
+t.Position = [10 10 500 380];
+t.ColumnName = {'Caracteristica','Valor'};
+t.ColumnEditable = false;
+
+% --------------------------------------------------------------------
+function filter_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to filter_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function Untitled_10_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_10 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function addRN_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to addRN_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function import_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to import_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function exportRN_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to exportRN_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function imgSize_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to imgSize_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+imagenGray=handles.imagenGray;
+
+if isfield(handles,'imagenGray_mod')
+    imagenGray=handles.imagenGray_mod;
+end
+prompt = {'Introduce la escala deseada (0-1):'};
+dataGet = inputdlg(prompt);
+escale = dataGet{1};
+J = imresize(imagenGray,str2double(escale));
+figure
+imshow(J)
+
+% --------------------------------------------------------------------
+function cropImg_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to cropImg_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+imagenGray=handles.imagenGray;
+
+if isfield(handles,'imagenGray_mod')
+    imagenGray=handles.imagenGray_mod;
+end
+
+helpdlg('Selecciona la region que desea recortar y haz doble click en el rectangulo para confrimar',...
+    'Ayuda');
+
+figure
+I2 = imcrop(imagenGray);
+imshow(I2);
+
+choice = questdlg('¿Desea guardar los cambios?', ...
+	'Confirmar', ...
+	'Acpetar','Cancelar','Cancelar');
+% Handle response
+switch choice
+    case 'Acpetar'
+      handles.imagenGray_mod = I2;
+      guidata(hObject,handles);
+      axes(handles.histogram);
+      imhist(I2);
+      axes(handles.imgPreGray);
+      imshow(I2);
+      title('En escala de grises');
+      axis image        
+
+    case 'Cancelar'
+        close
+end
+
+% --------------------------------------------------------------------
+function mean_filtter_Callback(hObject, eventdata, handles)
+% hObject    handle to mean_filtter (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+imagenGray=handles.imagenGray;
+
+if isfield(handles,'imagenGray_mod')
+    imagenGray=handles.imagenGray_mod;
+end
+    
+A = imagenGray;
+H = ones(3)/9;
+B = conv2(A,H);
+B = uint8(B);
+figure
+axis image, 
+imshow(B)
+title('Imagen filtrada')
+
+
+% --------------------------------------------------------------------
+function median_filtter_Callback(hObject, eventdata, handles)
+% hObject    handle to median_filtter (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+imagenGray=handles.imagenGray;
+
+if isfield(handles,'imagenGray_mod')
+    imagenGray=handles.imagenGray_mod;
+end
+
+prompt = {'Introduce el numero de kernel:'};
+dataGet = inputdlg(prompt);
+    
+A = imagenGray;
+[y, x,~] = size(A);
+B = zeros(y,x);
+kernel = dataGet{1};
+n = floor(kernel/2);
+for j = 1:y
+   for i = 1:x
+       if (i - n) >= 1 && (i + n) <= x && (j - n) >= 1 && (j + n) <= y
+            sub = A(j-n:j+n,i-n:i+n);
+            mediana = median(reshape(sub,1,[]));
+            B(j,i) = mediana;
+       end
+   end
+end
+B = uint8(B);
+figure
+axis image, 
+imshow(B)
+title('Imagen filtrada')
+
+
+% --------------------------------------------------------------------
+function sobel_filtter_Callback(hObject, eventdata, handles)
+% hObject    handle to sobel_filtter (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+imagenGray=handles.imagenGray;
+
+if isfield(handles,'imagenGray_mod')
+    imagenGray=handles.imagenGray_mod;
+end
+B = edge(imagenGray);
+
+
+% --------------------------------------------------------------------
+function area_filtter_Callback(hObject, eventdata, handles)
+% hObject    handle to area_filtter (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+imagenGray=handles.imagenGray;
+
+if isfield(handles,'imagenGray_mod')
+    imagenGray=handles.imagenGray_mod;
+end
+
+% [y,x,~] = size(imagenGray);
+isq = graythresh(imagenGray);
+Is = im2bw(imagenGray,isq);
+img = filtroArea(Is);
+
+figure
+imshow(img);
+title('Filtro por area');
+
+
+% --------------------------------------------------------------------
+function showOri_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to showOri_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+  original = handles.imageOriginal;
+
+figure
+imshow(original);
+title('Imagen original');
+
+% --------------------------------------------------------------------
+function showGrayMod_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to showGrayMod_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+imagenGray=handles.imagenGray;
+
+if isfield(handles,'imagenGray_mod')
+    imagenGray=handles.imagenGray_mod;
+end
+
+figure
+imshow(imagenGray);
+title('Imagen en escala de grises');
+
+% --------------------------------------------------------------------
+function ShowBin_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to ShowBin_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+img = handles.imagenBIN;
+figure
+imshow(img);
+
+
+% --------------------------------------------------------------------
+function export_sub_Callback(hObject, eventdata, handles)
+% hObject    handle to export_sub (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[s,v] =listdlg('Name','Exportar','PromptString', 'Selecciona una imagen: ','SelectionMode','single','ListString',{'Img. Binaria'; 'Img. Gris Modificada'});
+imagenGray=handles.imagenGray;
+if isfield(handles,'imagenGray_mod')
+    imagenGray=handles.imagenGray_mod;
+end 
+
+BW = imbinarize(imagenGray);
+if isfield(handles,'imagenBIN')
+    BW = handles.imagenBIN;
+end
+
+
+switch s
+    case 1
+        [Save,savename] = uiputfile('*.jpg','Guardar imagen');
+        fname=fullfile(savename,Save);
+        imwrite(BW,fname);
+%         imwrite(BW,'myBin.png');
+    case 2
+        [Save,savename] = uiputfile('*.jpg','Guardar imagen');
+        fname=fullfile(savename,Save);
+        imwrite(imagenGray,fname);
+%         imwrite(imagenGray,'myGray.png')
+end
+    
