@@ -331,7 +331,7 @@ function classifyBtn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 %obtiene los datos necesarios de la imagen y se almacenan en un vector
-load('network.mat');
+load('network2.mat');
 img = handles.imagenBIN;
  stats = regionprops(logical(img), 'centroid','Eccentricity','Extent','BoundingBox','MajorAxisLength','MinorAxisLength');
     centroids = cat(1, stats.Centroid);
@@ -348,7 +348,7 @@ img = handles.imagenBIN;
     stats_de = regionprops(logical(img_de), 'centroid','Eccentricity','Extent');
  
     diference_iz_de = stats_de.Extent - stats_iz.Extent;
-    data_calssify = [stats.Eccentricity; diference_iz_de];
+    data_calssify = [stats.Eccentricity; diference_iz_de]
     
     % clasify_new_value
 
@@ -356,19 +356,19 @@ W = net(data_calssify);
 classes2 = vec2ind(W);
 
 switch classes2
-    case 1
+    case 2
         disp('Mero izquierdo');
         set(handles.disRES, 'String', 'Mero izquierdo');
 
-    case 2
+    case 1
         disp('Mero derecho');
         set(handles.disRES, 'String', 'Mero derecho');
 
-    case 3
+    case 4
         disp('Chacci derecho');
         set(handles.disRES, 'String', 'Chac chi derecho');
 
-    case 4
+    case 3
         disp('Chacci izquierdo');
         set(handles.disRES, 'String', 'Chac chi izquierdo');
 
@@ -376,6 +376,29 @@ switch classes2
         disp('Error');
         set(handles.disRES, 'String', 'Ha ocurrido un error :(');
 end
+
+% UNCOMENT IF OLD NETWORK IS USED
+% switch classes2
+%     case 1
+%         disp('Mero izquierdo');
+%         set(handles.disRES, 'String', 'Mero izquierdo');
+% 
+%     case 2
+%         disp('Mero derecho');
+%         set(handles.disRES, 'String', 'Mero derecho');
+% 
+%     case 3
+%         disp('Chacci derecho');
+%         set(handles.disRES, 'String', 'Chac chi derecho');
+% 
+%     case 4
+%         disp('Chacci izquierdo');
+%         set(handles.disRES, 'String', 'Chac chi izquierdo');
+% 
+%     otherwise
+%         disp('Error');
+%         set(handles.disRES, 'String', 'Ha ocurrido un error :(');
+% end
 
 
 % --- Executes on selection change in drpdown1.
