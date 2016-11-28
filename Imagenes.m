@@ -517,7 +517,10 @@ switch drpdown1_value
         img_de = filtroArea(img_de); 
 
         figure
+        subplot(2,2,[1,2]);
         imshow(bwlabel(img))
+        title({'Subplot 1: Tamaño completo';['Extent = ', num2str(stats.Extent)]})
+
         hold on
         plot(centroids(:,1),centroids(:,2), 'b*')
         rectangle('Position',stats.BoundingBox ,...
@@ -527,16 +530,21 @@ switch drpdown1_value
         stats_iz = regionprops(logical(img_iz), 'centroid','Eccentricity','Extent','BoundingBox','MajorAxisLength','MinorAxisLength');
         stats_de = regionprops(logical(img_de), 'centroid','Eccentricity','Extent','BoundingBox','MajorAxisLength','MinorAxisLength');
 %         IZQUIERDA
-        figure
+        subplot(2,2,3);
         imshow(bwlabel(img_iz))
+        
+        title({'Lado Izquierdo';['Extent = ',num2str(stats_iz.Extent)]})
+
         hold on
         plot(centroids(:,1),centroids(:,2), 'b*')
         rectangle('Position',stats_iz.BoundingBox ,...
 	'EdgeColor','g', 'LineWidth', 3)
         hold off
 %         DERECHA 
-        figure
+        subplot(2,2,4);
         imshow(bwlabel(img_de))
+        title({'Lado Derecho';['Extent = ',num2str(stats_de.Extent)]})
+
         hold on
         plot(centroids(:,1),centroids(:,2), 'b*')
         rectangle('Position',stats_de.BoundingBox ,...
